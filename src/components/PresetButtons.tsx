@@ -18,11 +18,12 @@ export function PresetButtons({
   onSelect: (situation: string) => void;
 }) {
   return (
-    <div role="group" aria-label="Preset situations">
+    <div className="presets" role="group" aria-label="Preset situations">
       {PRESETS.map((preset) => (
         <button
           key={preset.label}
           type="button"
+          className="preset-btn"
           onClick={() => onSelect(preset.situation)}
         >
           {preset.label}

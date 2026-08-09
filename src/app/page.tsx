@@ -78,38 +78,59 @@ export default function Page() {
   const isBusy = phase === "generating-script" || phase === "generating-voice";
 
   return (
-    <main>
-      <h1>Relentless Coach</h1>
+    <main className="page">
+      <div className="mark">
+        RELENTLESS <span>COACH</span>
+      </div>
+
+      <div className="field">
+        <label className="field-label" htmlFor="situation">
+          Confess it
+        </label>
+        <textarea
+          id="situation"
+          placeholder="What's stopping you?"
+          maxLength={500}
+          value={situation}
+          onChange={(e) => setSituation(e.target.value)}
+        />
+        <span className="field-count">{situation.length}/500</span>
+      </div>
 
       <PresetButtons onSelect={setSituation} />
 
-      <textarea
-        placeholder="What's stopping you?"
-        maxLength={500}
-        value={situation}
-        onChange={(e) => setSituation(e.target.value)}
-      />
-
       <IntensitySlider value={intensity} onChange={setIntensity} />
 
-      <button type="button" onClick={generate} disabled={isBusy || situation.length === 0}>
-        Generate
+      <button
+        type="button"
+        className="strike"
+        onClick={generate}
+        disabled={isBusy || situation.length === 0}
+      >
+        {isBusy ? "Working" : "Hit Me"}
       </button>
 
-      {phase === "generating-voice" && <p>generating voice…</p>}
+      {phase === "generating-voice" && (
+        <p className="status">Recording the verdict</p>
+      )}
 
-      {script && <p>{script}</p>}
+      {script && (
+        <div className="verdict">
+          <span className="verdict-label">The verdict</span>
+          <p className="verdict-script">{script}</p>
 
-      {audioUrl && (
-        <AudioPlayer
-          audioUrl={audioUrl}
-          onRegenerate={generate}
-          regenerating={isBusy}
-        />
+          {audioUrl && (
+            <AudioPlayer
+              audioUrl={audioUrl}
+              onRegenerate={generate}
+              regenerating={isBusy}
+            />
+          )}
+        </div>
       )}
 
       {phase === "error" && (
-        <div>
+        <div className="alert">
           <p>{errorMessage}</p>
           <button type="button" onClick={generate}>
             Retry

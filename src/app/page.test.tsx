@@ -20,7 +20,7 @@ describe("Home page", () => {
     expect(
       screen.getByPlaceholderText("What's stopping you?")
     ).toBeInTheDocument();
-    expect(screen.getByText("Generate")).toBeInTheDocument();
+    expect(screen.getByText("Hit Me")).toBeInTheDocument();
   });
 
   it("disables Generate while a request is in flight and reveals script then audio", async () => {
@@ -54,9 +54,9 @@ describe("Home page", () => {
     fireEvent.change(screen.getByPlaceholderText("What's stopping you?"), {
       target: { value: "I don't want to study" },
     });
-    fireEvent.click(screen.getByText("Generate"));
+    fireEvent.click(screen.getByText("Hit Me"));
 
-    expect(screen.getByText("Generate")).toBeDisabled();
+    expect(screen.getByText("Working")).toBeDisabled();
 
     await waitFor(() =>
       expect(screen.getByText("Get up. Do the work.")).toBeInTheDocument()
@@ -96,7 +96,7 @@ describe("Home page", () => {
     fireEvent.change(screen.getByPlaceholderText("What's stopping you?"), {
       target: { value: "test" },
     });
-    fireEvent.click(screen.getByText("Generate"));
+    fireEvent.click(screen.getByText("Hit Me"));
 
     await waitFor(() =>
       expect(screen.getByText(/failed to generate script/i)).toBeInTheDocument()
