@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+import type { VoiceSettings } from "@elevenlabs/elevenlabs-js/api";
 import { intensityToVoiceSettings } from "@/lib/voiceSettings";
 import { checkRateLimit } from "@/lib/rateLimit";
+
+const MAX_SCRIPT_LENGTH = 5000;
 
 interface VoiceRequestBody {
   script: string;
@@ -18,6 +21,7 @@ function isValidBody(body: unknown): body is VoiceRequestBody {
   return (
     typeof b.script === "string" &&
     b.script.length > 0 &&
+    b.script.length <= MAX_SCRIPT_LENGTH &&
     typeof b.intensity === "number" &&
     b.intensity >= 1 &&
     b.intensity <= 10
@@ -43,7 +47,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY });
-  const voiceSettings = intensityToVoiceSettings(body.intensity);
+  const voiceSettings: VoiceSettings = intensityToVoiceSettings(body.intensity);
 
   try {
     const audioStream = await client.textToSpeech.convert(

@@ -74,6 +74,12 @@ describe("Home page", () => {
       "/api/voice",
       expect.objectContaining({ method: "POST" })
     );
+
+    const voiceCallOptions = fetchMock.mock.calls[1][1];
+    expect(JSON.parse(voiceCallOptions.body)).toEqual({
+      script: "Get up. Do the work.",
+      intensity: 5,
+    });
   });
 
   it("shows an inline error with retry when /api/script fails", async () => {

@@ -1,6 +1,6 @@
 export interface ElevenLabsVoiceSettings {
   stability: number;
-  similarity_boost: number;
+  similarityBoost: number;
   style: number;
 }
 
@@ -31,6 +31,6 @@ export function intensityToVoiceSettings(
   return {
     stability: lerp(STABILITY_AT_MIN, STABILITY_AT_MAX, t),
     style: lerp(STYLE_AT_MIN, STYLE_AT_MAX, t),
-    similarity_boost: SIMILARITY_BOOST,
+    similarityBoost: SIMILARITY_BOOST,
   };
 }

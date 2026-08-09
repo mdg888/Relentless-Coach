@@ -46,6 +46,13 @@ describe("POST /api/voice", () => {
     expect(res.status).toBe(400);
   });
 
+  it("returns 400 when script exceeds 5000 characters", async () => {
+    const res = await POST(
+      makeRequest({ script: "a".repeat(5001), intensity: 5 })
+    );
+    expect(res.status).toBe(400);
+  });
+
   it("returns audio bytes with audio/mpeg content-type on success", async () => {
     mockConvert.mockResolvedValue(fakeAudioStream());
 

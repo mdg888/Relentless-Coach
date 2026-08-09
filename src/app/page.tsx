@@ -9,6 +9,14 @@ const DURATION_SECONDS = 30;
 
 type Phase = "idle" | "generating-script" | "generating-voice" | "done" | "error";
 
+function extractErrorMessage(body: { error?: string; retryAfterMs?: number }, fallback: string): string {
+  if (typeof body.retryAfterMs === "number") {
+    const seconds = Math.ceil(body.retryAfterMs / 1000);
+    return `Rate limit exceeded — try again in ${seconds}s`;
+  }
+  return body.error ?? fallback;
+}
+
 export default function Page() {
   const [situation, setSituation] = useState("");
   const [intensity, setIntensity] = useState(5);
@@ -36,7 +44,7 @@ export default function Page() {
       });
       if (!scriptRes.ok) {
         const body = await scriptRes.json().catch(() => ({}));
-        throw new Error(body.error ?? "Failed to generate script");
+        throw new Error(extractErrorMessage(body, "Failed to generate script"));
       }
       const data = await scriptRes.json();
       scriptResult = data.script;
@@ -56,7 +64,7 @@ export default function Page() {
       });
       if (!voiceRes.ok) {
         const body = await voiceRes.json().catch(() => ({}));
-        throw new Error(body.error ?? "Failed to generate audio");
+        throw new Error(extractErrorMessage(body, "Failed to generate audio"));
       }
       const blob = await voiceRes.blob();
       setAudioUrl(URL.createObjectURL(blob));

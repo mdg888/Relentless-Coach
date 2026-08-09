@@ -6,14 +6,14 @@ describe("intensityToVoiceSettings", () => {
     const result = intensityToVoiceSettings(1);
     expect(result.stability).toBeCloseTo(0.85, 5);
     expect(result.style).toBeCloseTo(0.0, 5);
-    expect(result.similarity_boost).toBeCloseTo(0.75, 5);
+    expect(result.similarityBoost).toBeCloseTo(0.75, 5);
   });
 
   it("returns low stability and high style at maximum intensity (10)", () => {
     const result = intensityToVoiceSettings(10);
     expect(result.stability).toBeCloseTo(0.2, 5);
     expect(result.style).toBeCloseTo(1.0, 5);
-    expect(result.similarity_boost).toBeCloseTo(0.75, 5);
+    expect(result.similarityBoost).toBeCloseTo(0.75, 5);
   });
 
   it("is monotonically decreasing in stability as intensity rises", () => {
