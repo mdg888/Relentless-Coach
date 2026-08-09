@@ -1,69 +1,113 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { PresetButtons } from "@/components/PresetButtons";
+import { IntensitySlider } from "@/components/IntensitySlider";
+import { AudioPlayer } from "@/components/AudioPlayer";
+
+const DURATION_SECONDS = 30;
+
+type Phase = "idle" | "generating-script" | "generating-voice" | "done" | "error";
+
+export default function Page() {
+  const [situation, setSituation] = useState("");
+  const [intensity, setIntensity] = useState(5);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [script, setScript] = useState("");
+  const [audioUrl, setAudioUrl] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  async function generate() {
+    setErrorMessage("");
+    setScript("");
+    setAudioUrl("");
+    setPhase("generating-script");
+
+    let scriptResult: string;
+    try {
+      const scriptRes = await fetch("/api/script", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          situation,
+          intensity,
+          duration: DURATION_SECONDS,
+        }),
+      });
+      if (!scriptRes.ok) {
+        const body = await scriptRes.json().catch(() => ({}));
+        throw new Error(body.error ?? "Failed to generate script");
+      }
+      const data = await scriptRes.json();
+      scriptResult = data.script;
+      setScript(scriptResult);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Failed to generate script");
+      setPhase("error");
+      return;
+    }
+
+    setPhase("generating-voice");
+    try {
+      const voiceRes = await fetch("/api/voice", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ script: scriptResult, intensity }),
+      });
+      if (!voiceRes.ok) {
+        const body = await voiceRes.json().catch(() => ({}));
+        throw new Error(body.error ?? "Failed to generate audio");
+      }
+      const blob = await voiceRes.blob();
+      setAudioUrl(URL.createObjectURL(blob));
+      setPhase("done");
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Failed to generate audio");
+      setPhase("error");
+    }
+  }
+
+  const isBusy = phase === "generating-script" || phase === "generating-voice";
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main>
+      <h1>Relentless Coach</h1>
+
+      <PresetButtons onSelect={setSituation} />
+
+      <textarea
+        placeholder="What's stopping you?"
+        maxLength={500}
+        value={situation}
+        onChange={(e) => setSituation(e.target.value)}
+      />
+
+      <IntensitySlider value={intensity} onChange={setIntensity} />
+
+      <button type="button" onClick={generate} disabled={isBusy || situation.length === 0}>
+        Generate
+      </button>
+
+      {phase === "generating-voice" && <p>generating voice…</p>}
+
+      {script && <p>{script}</p>}
+
+      {audioUrl && (
+        <AudioPlayer
+          audioUrl={audioUrl}
+          onRegenerate={generate}
+          regenerating={isBusy}
         />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+      )}
+
+      {phase === "error" && (
+        <div>
+          <p>{errorMessage}</p>
+          <button type="button" onClick={generate}>
+            Retry
+          </button>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }
