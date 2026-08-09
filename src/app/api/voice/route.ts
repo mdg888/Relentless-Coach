@@ -56,7 +56,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
 
     const chunks: Uint8Array[] = [];
-    for await (const chunk of audioStream) {
+    for await (const chunk of audioStream as unknown as AsyncIterable<Uint8Array>) {
       chunks.push(chunk);
     }
     const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
