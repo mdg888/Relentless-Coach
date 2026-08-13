@@ -66,12 +66,41 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Running with Docker
 
+### Install Docker
+
+You need Docker Desktop (Mac/Windows) or Docker Engine + the Compose plugin (Linux). Install it
+from [docker.com/get-started](https://www.docker.com/get-started/), then confirm it's running:
+
 ```bash
-docker compose up --build
+docker --version
+docker compose version
 ```
 
-Reads the same `.env.local` and serves the production build on
-[http://localhost:3000](http://localhost:3000).
+### Build and run
+
+1. Create `.env.local` in the project root with the three keys listed above — `docker-compose.yml`
+   loads it via `env_file`.
+2. Build and start the container:
+
+   ```bash
+   docker compose up --build
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000).
+4. Stop it with `Ctrl+C`, or `docker compose down` if it's running detached (`-d`).
+
+The `Dockerfile` is a multi-stage build: it installs dependencies, runs `next build` (with
+`output: "standalone"` in `next.config.ts`), then copies only the standalone server and static
+assets into a minimal `node:22-alpine` runtime image running as a non-root user on port 3000.
+
+### Without Compose
+
+You can build and run the image directly if you'd rather not use Compose:
+
+```bash
+docker build -t relentless-coach .
+docker run -p 3000:3000 --env-file .env.local relentless-coach
+```
 
 ## Testing & building
 
